@@ -1,4 +1,5 @@
 from scene import *
+import sound
 
 class MyScene (Scene):
     def setup(self):
@@ -7,9 +8,18 @@ class MyScene (Scene):
         self.ship.position = self.size / 2
         self.add_child(self.ship)
 
-    def touch_began(self, touch):
-        x, y = touch.location
-        move_action = Action.move_to(x, y, 0.7, TIMING_SINODIAL)
-        self.ship.run_action(move_action)
+    def update(self):
+        x, y, z = gravity()
+        pos = self.ship.position
+        pos += (x * 15, y * 15)
+        # Don't allow the ship to move beyond the screen bounds:
+        pos.x = max(0, min(self.size.w, pos.x))
+        pos.y = max(0, min(self.size.h, pos.y))
+        self.ship.position = pos
 
-run(MyScene())
+    def touch_began(self, touch):
+        laser = SpriteNode('spc:LaserBlue9', position=self.ship.position, z_position=-1, parent=self)
+        laser.run_action(Action.sequence(Action.move_by(0, 1000), Action.remove()))
+        sound.play_effect('arcade:Laser_1')
+
+run(MyScene(), PORTRAIT)
